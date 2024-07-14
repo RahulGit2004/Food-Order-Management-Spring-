@@ -8,9 +8,9 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 public class UpdateItemReq {
-    private Integer foodId;
+    private int foodId;
+    private int restaurantId;
     private String ownerPhone;
-    private Integer restaurantId;
     private String foodItemName;
     private String description;
     private float price;

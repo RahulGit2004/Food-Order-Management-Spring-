@@ -15,13 +15,12 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Restaurant {
-
-    private Integer ownerId;
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Integer restaurantId;
+    private Integer ownerId;
     private String restaurantPhone;
-    private Boolean activeRestaurant;
+    private Boolean availableRestaurant;
     private String restaurantName;
     private String restaurantAddress;
     @ElementCollection

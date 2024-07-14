@@ -20,4 +20,6 @@ public interface UserService {
     User findByPhoneNumber(String ownerPhone);
 
     void deleteAllData();
+
+    Optional<User> findById(Integer customerId);
 }

@@ -4,6 +4,8 @@ import com.example.Fms.entity.model.FoodItem;
 import com.example.Fms.entity.request.DeleteFoodItemReq;
 import com.example.Fms.entity.request.FoodItemRequest;
 import com.example.Fms.entity.request.UpdateItemReq;
+import com.example.Fms.entity.request.UpdateItemStatus;
+import com.example.Fms.entity.response.UpdateItemResponse;
 import com.example.Fms.service.FoodItemService;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +38,21 @@ public class FoodItemController {
     @GetMapping("/all/foodItem")
     public List<FoodItem> getFoodItems () {
         return foodItemService.getFoodItems();
+    }
+
+    @GetMapping("/foodItems/details")
+    public FoodItem getFoodItemDetailsByFoodId(@RequestParam int foodId) {
+        return foodItemService.getFoodItemDetailsByFoodId(foodId);
+    }
+
+    @DeleteMapping("/wipe/foodItem/all")
+    public void delete(){
+        foodItemService.delete();
+    }
+
+    @PutMapping("/update/item/status")
+    public UpdateItemResponse updateItemStatusByRestaurant(@RequestBody UpdateItemStatus itemStatus) {
+        return foodItemService.updateItemStatusByRestaurant(itemStatus);
     }
 
 }

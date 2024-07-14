@@ -28,11 +28,11 @@ public class UserServiceImpl implements UserService {
                 user.setPhoneNumber(registerRequest.getPhoneNumber());
                 return userRepository.save(user);
             } else {
-                // return null when already phoneNumber exists.
+                // return when already phoneNumber exists.
                 return new User();
             }
         } else {
-            /// return null when username already exists.
+            /// return when username already exists.
             return new User();
         }
     }
@@ -74,6 +74,11 @@ public class UserServiceImpl implements UserService {
     @Override
     public void deleteAllData() {
         userRepository.deleteAll();
+    }
+
+    @Override
+    public Optional<User> findById(Integer customerId) {
+        return userRepository.findById(customerId);
     }
 
 

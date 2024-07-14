@@ -1,9 +1,11 @@
 package com.example.Fms.service;
 
+import com.example.Fms.entity.model.FoodItem;
 import com.example.Fms.entity.model.Restaurant;
 import com.example.Fms.entity.request.DeleteRestaurantReq;
 import com.example.Fms.entity.request.RestaurantRequest;
 import com.example.Fms.entity.request.UpdateRestaurantReq;
+import com.example.Fms.entity.response.RestaurantResponse;
 
 import java.util.List;
 
@@ -20,5 +22,11 @@ public interface RestaurantService {
     void delete();
 
     Restaurant findByRestaurantId(Integer restaurantId);
-    Restaurant saveUpdates(Restaurant restaurant);
+    void saveUpdates(Restaurant restaurant);
+
+    List<FoodItem> getFoodItemsByRestaurantId(int restaurantId);
+
+    List<RestaurantResponse> getRestaurantsByOwnerId(int ownerId);
+
+    void saveUpdated(Restaurant restaurant);
 }

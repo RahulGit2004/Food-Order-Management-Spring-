@@ -7,7 +7,10 @@ import com.example.Fms.entity.model.User;
 import com.example.Fms.entity.request.DeleteFoodItemReq;
 import com.example.Fms.entity.request.FoodItemRequest;
 import com.example.Fms.entity.request.UpdateItemReq;
+import com.example.Fms.entity.request.UpdateItemStatus;
+import com.example.Fms.entity.response.UpdateItemResponse;
 import com.example.Fms.repository.FoodItemRepository;
+import com.example.Fms.repository.OrderItemsRepository;
 import com.example.Fms.service.FoodItemService;
 import com.example.Fms.service.RestaurantService;
 import com.example.Fms.service.UserService;
@@ -15,6 +18,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 @Service
 public class FoodItemServiceImpl implements FoodItemService {
@@ -27,6 +32,9 @@ public class FoodItemServiceImpl implements FoodItemService {
     @Autowired
     private RestaurantService restaurantService;
 
+    @Autowired
+    private OrderItemsRepository orderItemsRepository;
+
     // todo item with same name will added multiple time in a restaurant.
     @Override
     public FoodItem createFoodItem(FoodItemRequest foodItemRequest) {
@@ -36,14 +44,14 @@ public class FoodItemServiceImpl implements FoodItemService {
             if (restaurant != null) {
 //                FoodItem foodItem = foodItemRepository.findByItemName(foodItemRequest.getFoodItemName());
 //                if (foodItem != null &&) {
-                    FoodItem foodItem = new FoodItem();
-                    foodItem.setRestaurantId(foodItemRequest.getRestaurantId());
-                    foodItem.setItemName(foodItemRequest.getFoodItemName());
-                    foodItem.setDescription(foodItemRequest.getDescription());
-                    foodItem.setPrice(foodItemRequest.getPrice());
-                    foodItem.setAvailability(true);
-                    restaurant.getFoodItemList().add(foodItem);
-                    return foodItemRepository.save(foodItem);
+                FoodItem foodItem = new FoodItem();
+                foodItem.setRestaurantId(foodItemRequest.getRestaurantId());
+                foodItem.setItemName(foodItemRequest.getFoodItemName());
+                foodItem.setDescription(foodItemRequest.getDescription());
+                foodItem.setPrice(foodItemRequest.getPrice());
+                foodItem.setAvailability(true);
+                restaurant.getFoodItemList().add(foodItem);
+                return foodItemRepository.save(foodItem);
 //                } else {
 //                    // when item is already present
 //                    return new FoodItem();
@@ -65,7 +73,7 @@ public class FoodItemServiceImpl implements FoodItemService {
             Restaurant restaurant = restaurantService.findByRestaurantId(updateItemReq.getRestaurantId());
             if (restaurant != null) {
                 FoodItem foodItem = foodItemRepository.findByFoodId(updateItemReq.getFoodId());
-                if (foodItem != null) {
+                if (foodItem != null && foodItem.getAvailability()) {
                     restaurant.getFoodItemList().remove(foodItem);
                     foodItem.setItemName(updateItemReq.getFoodItemName());
                     foodItem.setDescription(updateItemReq.getDescription());
@@ -88,30 +96,79 @@ public class FoodItemServiceImpl implements FoodItemService {
         }
 
     }
+    // todo complete it exception throws.
 
-    @Override
     public boolean deleteFoodItem(DeleteFoodItemReq foodItemReq) {
         User user = userService.findByPhoneNumber(foodItemReq.getOwnerPhone());
-        if (user !=  null && user.getRole().equalsIgnoreCase("owner")) {
+        if (user != null && user.getRole().equalsIgnoreCase("owner")) {
             FoodItem foodItem = foodItemRepository.findByFoodId(foodItemReq.getFoodId());
-            if (foodItem != null && foodItem.getRestaurantId().equals(foodItemReq.getRestaurantId())) {
-                foodItem.setAvailability(false);
-                foodItemRepository.delete(foodItem);
-                return true;
-            } else {
-                // when foodId is not present in provided restaurant.
-                return false;
+            if (foodItem != null) {
+                Restaurant restaurant = restaurantService.findByRestaurantId(foodItemReq.getRestaurantId());
+                if (restaurant != null) {
+                    for (FoodItem x : restaurant.getFoodItemList()) {
+                        if (x.getFoodId().equals(foodItemReq.getFoodId())) {
+                            x.setAvailability(false);
+                            restaurantService.saveUpdated(restaurant);
+                            foodItem.setAvailability(false);
+                            foodItemRepository.save(foodItem);
+                            return true;
+                        }
+                    }
+                    return false;
+                } else {
+                    return false;
+                }
             }
-
+            return false;
         } else {
-            // when not owner.
             return false;
         }
     }
 
+
     @Override
     public List<FoodItem> getFoodItems() {
         return foodItemRepository.findAll();
+    }
+
+    @Override
+    public FoodItem findByFoodId(Integer foodId) {
+        return foodItemRepository.findByFoodId(foodId);
+    }
+
+    @Override
+    public FoodItem getFoodItemDetailsByFoodId(int foodId) {
+        FoodItem foodItem = foodItemRepository.findByFoodId(foodId);
+        return Objects.requireNonNullElseGet(foodItem, FoodItem::new);
+    }
+
+    @Override
+    public void delete() {
+        foodItemRepository.deleteAll();
+    }
+
+    @Override
+    public UpdateItemResponse updateItemStatusByRestaurant(UpdateItemStatus itemStatus) {
+        Optional<User> user = userService.findById(itemStatus.getOwnerId());
+        if (user.isPresent()) {
+            FoodItem foodItem = foodItemRepository.findByFoodId(itemStatus.getFoodId());
+            Restaurant restaurant = restaurantService.findByRestaurantId(itemStatus.getRestaurantId());
+            if (foodItem != null) {
+                foodItem.setAvailability(itemStatus.getAvailability());
+                foodItemRepository.save(foodItem);
+                restaurant.getFoodItemList().remove(foodItem);
+                UpdateItemResponse response = new UpdateItemResponse();
+                response.setFoodItemName(foodItem.getItemName());
+                response.setFoodItemStatus(itemStatus.getAvailability());
+                response.setRestaurantName(restaurant.getRestaurantName());
+                response.setRestaurantId(restaurant.getRestaurantId());
+                return response;
+            } else {
+                return new UpdateItemResponse();
+            }
+        } else {
+            return new UpdateItemResponse();
+        }
     }
 
 

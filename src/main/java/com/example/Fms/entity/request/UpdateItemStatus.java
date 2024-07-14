@@ -7,7 +7,10 @@ import lombok.Setter;
 @Getter
 @Setter
 @AllArgsConstructor
-public class DeleteRestaurantReq {
-    private int ownerId;
-    private String restaurantPhone;
+public class UpdateItemStatus {
+    private Integer restaurantId;
+    private Integer foodId;
+    private Integer ownerId;
+    private Boolean availability;
+
 }

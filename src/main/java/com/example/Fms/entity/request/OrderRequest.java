@@ -8,7 +8,8 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 public class OrderRequest {
-    private Integer customerId;
-    private Integer restaurantId;
-    private
+    private int customerId;
+    private int restaurantId;
+    private int foodId;
+    private int quantity;
 }

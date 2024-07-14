@@ -9,7 +9,7 @@ import lombok.Setter;
 @AllArgsConstructor
 public class FoodItemRequest {
     private String ownerPhone;
-    private Integer restaurantId;
+    private int restaurantId;
     private String foodItemName;
     private String description;
     private float price;

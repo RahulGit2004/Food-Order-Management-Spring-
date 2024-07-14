@@ -1,17 +1,20 @@
 package com.example.Fms.service.impl;
 
+import com.example.Fms.entity.model.FoodItem;
 import com.example.Fms.entity.model.Restaurant;
 import com.example.Fms.entity.model.User;
 import com.example.Fms.entity.request.DeleteRestaurantReq;
 import com.example.Fms.entity.request.RestaurantRequest;
 import com.example.Fms.entity.request.UpdateRestaurantReq;
+import com.example.Fms.entity.response.RestaurantResponse;
 import com.example.Fms.repository.RestaurantRepository;
-import com.example.Fms.service.FoodItemService;
 import com.example.Fms.service.RestaurantService;
 import com.example.Fms.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -27,7 +30,7 @@ public class RestaurantServiceImpl implements RestaurantService {
     @Override
     public Restaurant createRestaurant(RestaurantRequest restaurantRequest) {
         // user exists
-       User user = userService.findByPhoneNumber(restaurantRequest.getOwnerPhone());
+        User user = userService.findByPhoneNumber(restaurantRequest.getOwnerPhone());
         if (user != null && user.getRole().equalsIgnoreCase("owner")) {
             // doing each restaurant have unique phone number.
             boolean existsPhone = restaurantRepository.existsByRestaurantPhone(restaurantRequest.getRestaurantPhone());
@@ -36,7 +39,7 @@ public class RestaurantServiceImpl implements RestaurantService {
                 restaurant.setOwnerId(user.getId());
                 restaurant.setRestaurantName(restaurantRequest.getRestaurantName());
                 restaurant.setRestaurantAddress(restaurantRequest.getRestaurantAddress());
-                restaurant.setActiveRestaurant(true);
+                restaurant.setAvailableRestaurant(true);
                 restaurant.setRestaurantPhone(restaurantRequest.getRestaurantPhone());
                 return restaurantRepository.save(restaurant);
             } else {
@@ -59,11 +62,12 @@ public class RestaurantServiceImpl implements RestaurantService {
             // checking owner is existing on restaurant repo.
             Restaurant restaurant = restaurantRepository.findByRestaurantPhone(updateReq.getOldRestaurantPhone());
             if (restaurant != null && restaurant.getRestaurantId().equals(updateReq.getRestaurantId())) {
-                if (restaurant.getActiveRestaurant()) {
+                if (restaurant.getAvailableRestaurant()) {
                     // updating restaurant details.
                     restaurant.setRestaurantName(updateReq.getRestaurantName());
                     restaurant.setRestaurantAddress(updateReq.getRestaurantAddress());
                     restaurant.setRestaurantPhone(updateReq.getNewRestaurantPhone());
+                    restaurant.setAvailableRestaurant(updateReq.isAvailableRestaurant());
                     restaurantRepository.save(restaurant);
                     return true;
                 } else {
@@ -84,9 +88,9 @@ public class RestaurantServiceImpl implements RestaurantService {
     public boolean deleteRestaurant(DeleteRestaurantReq deleteRequest) {
         Restaurant restaurant = restaurantRepository.findByRestaurantPhone(deleteRequest.getRestaurantPhone());
         if (restaurant != null) {
-            if (restaurant.getActiveRestaurant()) {
+            if (restaurant.getAvailableRestaurant()) {
                 if (restaurant.getOwnerId().equals(deleteRequest.getOwnerId())) {
-                    restaurant.setActiveRestaurant(false);
+                    restaurant.setAvailableRestaurant(false);
                     restaurantRepository.delete(restaurant);
                     return true;
                 } else {
@@ -110,7 +114,7 @@ public class RestaurantServiceImpl implements RestaurantService {
 
     @Override
     public void delete() {
-         restaurantRepository.deleteAll();
+        restaurantRepository.deleteAll();
     }
 
     @Override
@@ -119,7 +123,46 @@ public class RestaurantServiceImpl implements RestaurantService {
     }
 
     @Override
-    public Restaurant saveUpdates(Restaurant restaurant) {
-        return restaurantRepository.save(restaurant);
+    public void saveUpdates(Restaurant restaurant) {
+         restaurantRepository.save(restaurant);
+    }
+
+    @Override
+    public List<FoodItem> getFoodItemsByRestaurantId(int restaurantId) {
+        Restaurant restaurant = restaurantRepository.findByRestaurantId(restaurantId);
+        if (restaurant != null) {
+            return restaurant.getFoodItemList();
+        }
+        return Collections.emptyList();
+    }
+
+    @Override
+    public List<RestaurantResponse> getRestaurantsByOwnerId(int ownerId) {
+        List<Restaurant> restaurant = restaurantRepository.findByOwnerId(ownerId);
+        if (!restaurant.isEmpty()) {
+            List<RestaurantResponse> responseList = new ArrayList<>();
+            for (Restaurant x: restaurant) {
+                RestaurantResponse restaurantResponse = new RestaurantResponse();
+                restaurantResponse.setRestaurantId(x.getRestaurantId());
+                restaurantResponse.setRestaurantPhone(x.getRestaurantPhone());
+                restaurantResponse.setRestaurantName(x.getRestaurantName());
+                restaurantResponse.setRestaurantAddress(x.getRestaurantAddress());
+                Boolean availableRes = x.getAvailableRestaurant();
+                if (availableRes != null && availableRes) {
+                    restaurantResponse.setAvailableRestaurant(true);
+                } else {
+                    restaurantResponse.setAvailableRestaurant(false);
+                }
+                responseList.add(restaurantResponse);
+            }
+            return responseList;
+        } else {
+            return Collections.emptyList();
+        }
+    }
+
+    @Override
+    public void saveUpdated(Restaurant restaurant) {
+        restaurantRepository.save(restaurant);
     }
 }
