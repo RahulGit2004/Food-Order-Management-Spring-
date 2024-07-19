@@ -4,21 +4,17 @@ import com.example.Fms.entity.model.*;
 import com.example.Fms.entity.request.OrderRequest;
 import com.example.Fms.entity.request.UpdateOrderStatusReq;
 import com.example.Fms.entity.response.OrderResponse;
-import com.example.Fms.repository.OrderItemsRepository;
 import com.example.Fms.repository.OrderRepository;
-import com.example.Fms.repository.UserRepository;
 import com.example.Fms.service.FoodItemService;
 import com.example.Fms.service.OrderService;
 import com.example.Fms.service.RestaurantService;
 import com.example.Fms.service.UserService;
 import jakarta.transaction.Transactional;
-import org.aspectj.weaver.ast.Or;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.swing.text.html.Option;
 import java.util.*;
-
 @Service
 public class OrderServiceImpl implements OrderService {
 
